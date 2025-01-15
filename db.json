@@ -3,7 +3,35 @@
     {
       "_id": "1",
       "twitter_id": "123456789",
-      "username": "influencer_name",
+      "username": "name0",
+      "followers_count": 50000,
+      "leaderboard_score": 75,
+      "category": "medicine",
+      "processed_claims": [
+        {
+          "_id": "claim_1",
+          "text": "El ejercicio diario mejora la salud mental.",
+          "categoria": "health",
+          "verification_status": "Verdadero",
+          "confidence_score": 0.95,
+          "tweet_id": "222222",
+          "date": "2025-01-14T10:00:00Z"
+        },
+        {
+          "_id": "claim_2",
+          "text": "La cafeína mejora la memoria a corto plazo.",
+          "categoria": "nutrition",
+          "verification_status": "Falso",
+          "confidence_score": 0.72,
+          "tweet_id": "333333",
+          "date": "2025-01-14T11:00:00Z"
+        }
+      ]
+    },
+    {
+      "_id": "2",
+      "twitter_id": "123456789",
+      "username": "NAME1 ",
       "followers_count": 50000,
       "leaderboard_score": 75,
       "category": "medicine",

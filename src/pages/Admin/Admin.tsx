@@ -1,9 +1,10 @@
-
+// Admin.tsx
 
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
 function Admin() {
+  const [apiKey, setApiKey] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [influencerName, setInfluencerName] = useState("");
@@ -11,38 +12,70 @@ function Admin() {
   const [fetchedTweets, setFetchedTweets] = useState<any[]>([]);
   const [analysisResults, setAnalysisResults] = useState<any[]>([]);
 
-  const fetchTweets = () => {
-    const params = new URLSearchParams({
-      startDate,
-      endDate,
-      influencerName,
-      tweetCount: tweetCount.toString()
-    });
+  // Remove the hardcoded baseURL and let the Vite proxy handle it
+  const fetchTweets = async () => {
+    try {
+      const params = new URLSearchParams({
+        startDate,
+        endDate,
+        influencerName,
+        tweetCount: tweetCount.toString(),
+      });
 
-    fetch(`/api/admin/tweets?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setFetchedTweets(data);
-      })
-      .catch((err) => console.error("Error fetching tweets:", err));
+      // Fetch from "/api/..." so the proxy can forward requests to localhost:3000
+      const res = await fetch(`/api/admin/tweets?${params.toString()}`);
+      if (!res.ok) {
+        console.error("Error fetching tweets:", res.statusText);
+        return;
+      }
+      const data = await res.json();
+      console.log("/api/admin/tweets ",data[0]);
+
+      setFetchedTweets(data);
+    } catch (err) {
+      console.error("Error fetching tweets:", err);
+    }
   };
 
-  const analyzeTweets = () => {
-    fetch("/api/admin/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tweets: fetchedTweets })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setAnalysisResults(data);
-      })
-      .catch((err) => console.error("Error analyzing tweets:", err));
+  const analyzeTweets = async () => {
+    try {
+      const res = await fetch(`/api/admin/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tweets: fetchedTweets, apiKey }),
+      });
+      if (!res.ok) {
+        console.error("Error analyzing tweets:", res.statusText);
+        return;
+      }
+      const data = await res.json();
+      console.log(data);
+
+      setAnalysisResults(data);
+      console.log(data);
+
+    } catch (err) {
+      console.error("Error analyzing tweets:", err);
+    }
   };
 
   return (
     <>
       <h1>Admin Page</h1>
+
+      <div>
+        <label>OpenAI API Key:
+       
+
+        </label>
+        <input
+  type="text"
+  placeholder="sk-..."
+  value={apiKey}              // Use the state variable here
+  onChange={(e) => setApiKey(e.target.value)}
+/>
+
+      </div>
 
       <div>
         <label>Start Date:</label>
@@ -52,6 +85,7 @@ function Admin() {
           onChange={(e) => setStartDate(e.target.value)}
         />
       </div>
+
       <div>
         <label>End Date:</label>
         <input
@@ -60,6 +94,7 @@ function Admin() {
           onChange={(e) => setEndDate(e.target.value)}
         />
       </div>
+
       <div>
         <label>Influencer Name:</label>
         <input
@@ -68,6 +103,7 @@ function Admin() {
           onChange={(e) => setInfluencerName(e.target.value)}
         />
       </div>
+
       <div>
         <label>Tweet Count:</label>
         <input
@@ -92,8 +128,7 @@ function Admin() {
       <ul>
         {analysisResults.map((result, idx) => (
           <li key={idx}>
-            Text: {result.text} | Status: {result.verification_status} | Score:{" "}
-            {result.confidence_score}
+            Text: {result.text} | ChatGPT Response: {result.analysis}
           </li>
         ))}
       </ul>
