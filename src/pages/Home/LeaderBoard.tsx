@@ -15,19 +15,39 @@ function LeaderBoard() {
       .then((data) => {
         const localStr = localStorage.getItem("chatGPTClaims");
         const localClaims = localStr ? JSON.parse(localStr) : [];
+
+        // Mapear claims locales por usuario para agrupar sus scores
+        const localMap: { [key: string]: { localScore: number; claims: any[] } } = {};
+        localClaims.forEach((claim: any) => {
+          if (!localMap[claim.userId]) {
+            localMap[claim.userId] = { localScore: 0, claims: [] };
+          }
+          localMap[claim.userId].localScore += claim.confidence_score;
+          localMap[claim.userId].claims.push(claim);
+        });
+
+        let globalScore = 0;
+
+        // Combinar datos del servidor con claims locales y recalcular scores
         data.users.forEach((usr: any) => {
-          const userClaims = localClaims.filter(
-            (c: any) => c.userId === usr.username
-          );
-          let localScore = 0;
-          userClaims.forEach((c: any) => {
-            localScore += c.confidence_score;
-          });
-          usr.leaderboard_score = (usr.leaderboard_score || 0) + localScore;
+          let serverScore = 0;
+          if (usr.processed_claims) {
+            usr.processed_claims.forEach((claim: any) => {
+              serverScore += claim.confidence_score;
+            });
+          }
+
+          const localData = localMap[usr.username] || { localScore: 0, claims: [] };
+          const localScore = localData.localScore;
+
+          // Sumar scores del servidor y locales
+          usr.totalScore = serverScore + localScore;
+
+          // Combinar claims locales con los procesados del servidor
           if (!usr.processed_claims) usr.processed_claims = [];
           usr.processed_claims = [
             ...usr.processed_claims,
-            ...userClaims.map((claim: any) => ({
+            ...localData.claims.map((claim: any) => ({
               _id: claim._id,
               text: claim.text,
               categoria: claim.categoria,
@@ -37,13 +57,31 @@ function LeaderBoard() {
               date: claim.date,
             })),
           ];
+
+          globalScore += usr.totalScore;
         });
+
+        // Recalcular porcentajes relativos basados en los scores combinados
+        data.users.forEach((usr: any) => {
+          usr.relative_percentage = globalScore > 0 ? (usr.totalScore / globalScore) * 100 : 0;
+        });
+
+        const totalLocalClaims = localClaims.length;
+        const totalVerifiedClaims = (data.totalVerifiedClaims || 0) + totalLocalClaims;
+
+        const totalUsers = data.totalUsers;
+        const averageScore = totalUsers > 0
+          ? data.users.reduce((sum: number, u: any) => sum + u.relative_percentage, 0) / totalUsers
+          : 0;
+
         setUsers(data.users);
-        setTotalUsers(data.totalUsers);
-        setTotalVerifiedClaims(data.totalVerifiedClaims + localClaims.length);
-        setAverageScore(data.averageScore);
+        setTotalUsers(totalUsers);
+        setTotalVerifiedClaims(totalVerifiedClaims);
+        setAverageScore(averageScore);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   return (
@@ -57,7 +95,7 @@ function LeaderBoard() {
           <li key={user._id}>
             <Link to={`/User?id=${user._id}`}>{user.username}</Link>
             <p>Followers: {user.followers_count}</p>
-            <p>Score: {user.leaderboard_score}</p>
+            <p>Score: {user.relative_percentage.toFixed(2)}%</p>
             <p>Category: {user.category}</p>
             <p>Processed Claims: {user.processed_claims.length}</p>
           </li>

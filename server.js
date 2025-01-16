@@ -30,25 +30,31 @@ app.get("/api/leaderboard", (req, res) => {
     const dbData = readJSONFile(dbPath);
     const users = dbData.users || [];
 
-    // Encontrar el máximo número de claims procesados
-    let maxClaims = users.reduce((max, user) => {
-      const count = user.processed_claims ? user.processed_claims.length : 0;
-      return count > max ? count : max;
-    }, 0);
-
     let totalUsers = users.length;
     let totalVerifiedClaims = 0;
-    let totalScore = 0;
+    let totalGlobal = 0;
+
 
     users.forEach(user => {
-      const claimCount = user.processed_claims ? user.processed_claims.length : 0;
-      totalVerifiedClaims += claimCount;
-      const relativePercentage = maxClaims > 0 ? (claimCount / maxClaims) * 100 : 0;
-      user.leaderboard_score = relativePercentage;
-      totalScore += relativePercentage;
+      let userScoreSum = 0;
+      if (user.processed_claims) {
+        user.processed_claims.forEach(claim => {
+          userScoreSum += claim.confidence_score;
+        });
+        totalVerifiedClaims += user.processed_claims.length;
+      }
+      user.rawScore = userScoreSum;
+      totalGlobal += userScoreSum;
     });
 
-    const averageScore = totalUsers > 0 ? totalScore / totalUsers : 0;
+
+    users.forEach(user => {
+      user.relative_percentage = totalGlobal > 0 ? (user.rawScore / totalGlobal) * 100 : 0;
+    });
+
+    const averageScore = totalUsers > 0
+      ? users.reduce((sum, user) => sum + user.relative_percentage, 0) / totalUsers
+      : 0;
 
     return res.json({
       users,
@@ -60,6 +66,8 @@ app.get("/api/leaderboard", (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+
+
 
 
 app.get("/api/users/:id", (req, res) => {
@@ -76,25 +84,35 @@ app.get("/api/users/:id", (req, res) => {
 });
 
 app.get("/api/admin/tweets", (req, res) => {
+  console.log("fetch tweets ");
   try {
     const { startDate, endDate, influencerName, tweetCount } = req.query;
+    const desiredCount = Number(tweetCount) || 5;
     const fakeTweets = readJSONFile(fakeTweetsPath).tweets || [];
 
+    // Filtrar tweets según los criterios proporcionados
     const filteredTweets = fakeTweets.filter((t) => {
       const tweetDate = new Date(t.date).getTime();
       const from = startDate ? new Date(startDate).getTime() : 0;
       const to = endDate ? new Date(endDate).getTime() : Date.now();
       const validDate = tweetDate >= from && tweetDate <= to;
-      const validName =
-        !influencerName || t.influencerName === influencerName.toString();
+      const validName = !influencerName || t.influencerName === influencerName.toString();
       return validDate && validName;
     });
 
-    const limitedTweets = filteredTweets.slice(
-      0,
-      Number(tweetCount) || 5
-    );
+    // Tomar la cantidad solicitada de tweets filtrados
+    let limitedTweets = filteredTweets.slice(0, desiredCount);
 
+    // Si no se alcanzó la cantidad deseada con los filtros, complementar con otros tweets sin filtrar
+    if (limitedTweets.length < desiredCount) {
+      const additionalNeeded = desiredCount - limitedTweets.length;
+      // Seleccionar tweets no incluidos en los filtrados
+      const remainingTweets = fakeTweets.filter(t => !filteredTweets.includes(t));
+      const extraTweets = remainingTweets.slice(0, additionalNeeded);
+      limitedTweets = limitedTweets.concat(extraTweets);
+    }
+
+    console.log("Tweets a devolver:", limitedTweets);
     return res.json(limitedTweets);
   } catch (err) {
     console.error("Error retrieving tweets:", err);
@@ -102,11 +120,12 @@ app.get("/api/admin/tweets", (req, res) => {
   }
 });
 
-// POST /api/admin/analyze
+
+
 app.post("/api/admin/analyze", async (req, res) => {
   const { tweets, apiKey } = req.body;
 
-  // Validar datos de entrada
+
   if (!tweets || !Array.isArray(tweets)) {
     return res.status(400).json({ error: "Missing or invalid tweets array" });
   }
