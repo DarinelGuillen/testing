@@ -30,15 +30,22 @@ app.get("/api/leaderboard", (req, res) => {
     const dbData = readJSONFile(dbPath);
     const users = dbData.users || [];
 
-    const totalUsers = users.length;
+    // Encontrar el máximo número de claims procesados
+    let maxClaims = users.reduce((max, user) => {
+      const count = user.processed_claims ? user.processed_claims.length : 0;
+      return count > max ? count : max;
+    }, 0);
+
+    let totalUsers = users.length;
     let totalVerifiedClaims = 0;
     let totalScore = 0;
 
-    users.forEach((user) => {
-      totalScore += user.leaderboard_score || 0;
-      if (user.processed_claims) {
-        totalVerifiedClaims += user.processed_claims.length;
-      }
+    users.forEach(user => {
+      const claimCount = user.processed_claims ? user.processed_claims.length : 0;
+      totalVerifiedClaims += claimCount;
+      const relativePercentage = maxClaims > 0 ? (claimCount / maxClaims) * 100 : 0;
+      user.leaderboard_score = relativePercentage;
+      totalScore += relativePercentage;
     });
 
     const averageScore = totalUsers > 0 ? totalScore / totalUsers : 0;
@@ -53,6 +60,7 @@ app.get("/api/leaderboard", (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+
 
 app.get("/api/users/:id", (req, res) => {
   try {
@@ -110,7 +118,13 @@ app.post("/api/admin/analyze", async (req, res) => {
     const results = [];
 
     for (const tweet of tweets) {
-      const prompt = `Here is a tweet from an influencer: "${tweet.text}". Identify any claims related to health in the text. For each claim: 1. Verify if it is true, questionable, or false. 2. Assign a confidence score based on scientific evidence. 3. Return a brief summary.`;
+      const prompt = `Here is a tweet from an influencer: "${tweet.text}". Identify any health-related claims in the text. For each claim, provide a JSON object with the following properties:
+      - "text": el texto original del claim,
+      - "categoria": la categoría del claim,
+      - "verification_status": "Verdadero", "Cuestionable" o "Falso",
+      - "confidence_score": un número entre 0 y 1.
+
+      Return the response strictly in valid JSON format.`;
 
       const openaiRes = await axios.post(
         "https://api.openai.com/v1/chat/completions",
@@ -126,16 +140,24 @@ app.post("/api/admin/analyze", async (req, res) => {
       );
 
       const chatResponse = openaiRes.data.choices[0].message.content.trim();
-      results.push({ text: tweet.text, analysis: chatResponse });
+
+      try {
+        const parsedResponse = JSON.parse(chatResponse);
+        results.push(parsedResponse);
+      } catch (parseError) {
+        console.error("Error parsing JSON from ChatGPT response:", parseError);
+        results.push({ text: tweet.text, error: "Invalid JSON response", rawResponse: chatResponse });
+      }
     }
 
-    console.log("Analysis results:", results);
+    console.log("Analysis results:", JSON.stringify(results, null, 2));
     return res.json(results);
   } catch (error) {
     console.error("Error analyzing tweets:", error?.response?.data || error);
     return res.status(500).json({ error: "Error analyzing tweets" });
   }
 });
+
 
 app.post("/api/users/:id/claims", (req, res) => {
   const { id } = req.params;
@@ -156,6 +178,7 @@ app.post("/api/users/:id/claims", (req, res) => {
 
   return res.json({ message: "Claim added successfully" });
 });
+
 
 app.listen(3000, () => {
   console.log("Local server running on http://localhost:3000");
