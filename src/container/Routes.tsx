@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import HomePage from "@/pages/Home/leaderBoard";
+import HomePage from "@/pages/Home/LeaderBoard";
 import Admin from "@/pages/Admin/Admin";
 import UserInfo from "@/pages/User/UserInfo";
 
