@@ -1,12 +1,15 @@
 [build]
-  command   = "npm run build"
-  publish   = "dist"                 # Aquí se publica tu frontend
-  functions = "netlify/functions"    # Aquí están tus funciones serverless
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
 
-# Redirecciones:
+[functions]
+  included_files = [
+    "netlify/functions/db.json",
+    "netlify/functions/fakeTweets.json"
+  ]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
-
-# Esto redirige cualquier ruta de /api/... hacia tu función "server" en netlify/functions/server.js
