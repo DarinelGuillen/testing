@@ -197,7 +197,7 @@ app.post("/api/users/:id/claims", (req, res) => {
 
   return res.json({ message: "Claim added successfully" });
 });
-
+a
 
 
 // Ejemplo de implementación en tu archivo server (app.js o index.js)
@@ -281,6 +281,4 @@ app.post("/api/users/:userId/remove-duplicates", (req, res) => {
 
 
 
-app.listen(3000, () => {
-  console.log("Local server running on http://localhost:3000");
-});
+export const handler = serverless(app);

@@ -1,34 +1,34 @@
 {
   "tweets": [
     {
-      "id": "t_101",
-      "text": "El chocolate negro puede mejorar la salud cardiovascular.",
-      "influencerName": "influencer_name",
-      "date": "2025-01-10T09:30:00Z"
+      "id": "t_106",
+      "text": "El consumo regular de chocolate negro no solo deleita el paladar, sino que también puede mejorar la salud cardiovascular a largo plazo gracias a sus antioxidantes y flavonoides, que ayudan a reducir la presión arterial, mejorar la circulación y proteger el corazón de enfermedades graves.",
+      "influencerName": "name0",
+      "date": "2025-01-17T10:00:00Z"
     },
     {
-      "id": "t_102",
-      "text": "Correr en ayunas quema el doble de calorías.",
-      "influencerName": "influencer_name",
-      "date": "2025-01-12T07:15:00Z"
+      "id": "t_107",
+      "text": "Salir a correr en ayunas, cuando se realiza de manera controlada y con la dieta adecuada, puede inducir al cuerpo a quemar el doble de calorías, aprovechando las reservas de grasa acumuladas, lo que resulta en un proceso de pérdida de peso más eficiente y beneficioso para la salud metabólica.",
+      "influencerName": "name0",
+      "date": "2025-01-18T06:45:00Z"
     },
     {
-      "id": "t_103",
-      "text": "Comer zanahorias mejora la vista.",
-      "influencerName": "another_influencer",
-      "date": "2025-01-14T11:45:00Z"
+      "id": "t_108",
+      "text": "Incorporar zanahorias en la dieta diaria, gracias a su alto contenido de beta-caroteno y otros nutrientes esenciales, no solo mejora la vista a largo plazo, sino que también favorece la salud de la piel y fortalece el sistema inmunológico, ofreciendo múltiples beneficios para el bienestar general.",
+      "influencerName": "otro_influencer",
+      "date": "2025-01-19T14:30:00Z"
     },
     {
-      "id": "t_104",
-      "text": "Beber agua tibia con limón previene resfriados.",
-      "influencerName": "influencer_name",
-      "date": "2025-01-15T08:00:00Z"
+      "id": "t_109",
+      "text": "Beber agua tibia con limón cada mañana puede ser una práctica transformadora para la salud, ya que ayuda a desintoxicar el cuerpo, mejora la digestión, refuerza el sistema inmunitario y establece un tono positivo para el día, previniendo resfriados y otras enfermedades comunes.",
+      "influencerName": "name0",
+      "date": "2025-01-20T08:20:00Z"
     },
     {
-      "id": "t_105",
-      "text": "La meditación diaria reduce la ansiedad.",
-      "influencerName": "influencer_name",
-      "date": "2025-01-16T16:20:00Z"
+      "id": "t_110",
+      "text": "La meditación diaria, practicada con constancia, no solo reduce la ansiedad y el estrés, sino que también mejora la concentración, fomenta la paz interior y facilita un enfoque mental positivo, resultando en una mejor calidad de vida y relaciones más saludables con uno mismo y con los demás.",
+      "influencerName": "name0",
+      "date": "2025-01-21T17:45:00Z"
     }
   ]
 }

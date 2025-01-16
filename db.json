@@ -5,7 +5,42 @@
       "twitter_id": "123456789",
       "username": "name0",
       "followers_count": 50000,
-      "leaderboard_score": 75,
+      "category": "medicine",
+      "processed_claims": [
+        {
+          "_id": "claim_1",
+          "text": "El ejercicio diario mejora la salud mental.",
+          "categoria": "health",
+          "verification_status": "Verdadero",
+          "confidence_score": 0.95,
+          "tweet_id": "222222",
+          "date": "2025-01-14T10:00:00Z"
+        },
+        {
+          "_id": "claim_2",
+          "text": "La cafeína mejora la memoria a corto plazo.",
+          "categoria": "nutrition",
+          "verification_status": "Falso",
+          "confidence_score": 0.72,
+          "tweet_id": "333333",
+          "date": "2025-01-14T11:00:00Z"
+        },
+        {
+          "_id": "claim_8wghvgw6t",
+          "text": "La cafeína puede funcionar como un preentreno cuando haces ejercicio",
+          "categoria": "Nutrición",
+          "verification_status": "Cuestionable",
+          "confidence_score": 0.6,
+          "tweet_id": "",
+          "date": "2025-01-16T01:53:18.039Z"
+        }
+      ]
+    },
+    {
+      "_id": "2",
+      "twitter_id": "123456789",
+      "username": "NAME1",
+      "followers_count": 50000,
       "category": "medicine",
       "processed_claims": [
         {
@@ -29,11 +64,10 @@
       ]
     },
     {
-      "_id": "2",
+      "_id": "3",
       "twitter_id": "123456789",
-      "username": "NAME1 ",
+      "username": "HELLO",
       "followers_count": 50000,
-      "leaderboard_score": 75,
       "category": "medicine",
       "processed_claims": [
         {
@@ -53,6 +87,42 @@
           "confidence_score": 0.72,
           "tweet_id": "333333",
           "date": "2025-01-14T11:00:00Z"
+        },
+        {
+          "_id": "claim_exzhn4sw0",
+          "text": "puede mejorar la salud cardiovascular a largo plazo gracias a sus antioxidantes y flavonoides",
+          "categoria": "Beneficios para la salud cardiovascular",
+          "verification_status": "Verdadero",
+          "confidence_score": 0.9,
+          "tweet_id": "t_106",
+          "date": "2025-01-16T01:42:24.896Z"
+        },
+        {
+          "_id": "claim_aoxzir4tv",
+          "text": "ayudan a reducir la presión arterial",
+          "categoria": "Beneficios para la salud cardiovascular",
+          "verification_status": "Verdadero",
+          "confidence_score": 0.8,
+          "tweet_id": "t_106",
+          "date": "2025-01-16T01:42:24.896Z"
+        },
+        {
+          "_id": "claim_grq7y7gk9",
+          "text": "mejorar la circulación",
+          "categoria": "Beneficios para la salud cardiovascular",
+          "verification_status": "Verdadero",
+          "confidence_score": 0.85,
+          "tweet_id": "t_106",
+          "date": "2025-01-16T01:42:24.896Z"
+        },
+        {
+          "_id": "claim_791ql6ubp",
+          "text": "proteger el corazón de enfermedades graves",
+          "categoria": "Beneficios para la salud cardiovascular",
+          "verification_status": "Verdadero",
+          "confidence_score": 0.9,
+          "tweet_id": "t_106",
+          "date": "2025-01-16T01:42:24.896Z"
         }
       ]
     }
