@@ -138,7 +138,7 @@ app.post("/api/admin/analyze", async (req, res) => {
 
     for (const tweet of tweets) {
       const prompt = `Here is a tweet from an influencer: "${tweet.text}". Identify any health-related claims in the text. For each claim, provide a JSON object with the following properties:
-      - "text": el texto original del claim,
+      - "text": version reducida del texto original del claim,
       - "categoria": la categoría del claim,
       - "verification_status": "Verdadero", "Cuestionable" o "Falso",
       - "confidence_score": un número entre 0 y 1.
@@ -197,6 +197,88 @@ app.post("/api/users/:id/claims", (req, res) => {
 
   return res.json({ message: "Claim added successfully" });
 });
+
+
+
+// Ejemplo de implementación en tu archivo server (app.js o index.js)
+
+app.get("/api/users/:userId/duplicates", (req, res) => {
+  const { userId } = req.params;
+
+  // 1. Leer el archivo db.json
+  const dbData = readJSONFile(dbPath);
+  const user = dbData.users.find((u) => u._id === userId);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const claims = user.processed_claims || [];
+
+  // 2. Agrupar claims por texto normalizado
+  const duplicatesMap = {};
+  for (const claim of claims) {
+    const normalizedText = claim.text.toLowerCase().trim();
+    if (!duplicatesMap[normalizedText]) {
+      duplicatesMap[normalizedText] = [];
+    }
+    duplicatesMap[normalizedText].push(claim);
+  }
+
+  // 3. Filtrar solo los grupos que tengan +1 claim (i.e., duplicados)
+  const duplicateGroups = Object.values(duplicatesMap).filter(
+    (group) => group.length > 1
+  );
+
+  // Estructura de respuesta:
+  // [
+  //   [
+  //     { _id: "claim_2", text: "La cafeína..." },
+  //     { _id: "claim_3", text: "La cafeína..." },
+  //     ...
+  //   ],
+  //   [...]
+  // ]
+  // Cada elemento del arreglo es un grupo de duplicados con claims repetidas
+  return res.json({ duplicates: duplicateGroups });
+});
+
+app.post("/api/users/:userId/remove-duplicates", (req, res) => {
+  const { userId } = req.params;
+  const { duplicates } = req.body;
+  // duplicates = [ [ "claim_2", "claim_3" ], [ "claim_5", "claim_7" ], ... ]
+
+  // 1. Leer el archivo db.json
+  const dbData = readJSONFile(dbPath);
+  const userIndex = dbData.users.findIndex((u) => u._id === userId);
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // 2. Para cada grupo de IDs, eliminar todas excepto la primera
+  if (duplicates && Array.isArray(duplicates)) {
+    for (const group of duplicates) {
+      // group es un array de IDs duplicadas. Ej: ["claim_2", "claim_3"]
+      if (group.length < 2) continue; // Si solo hay una, no hay nada que eliminar
+
+      // Conservar la primera, eliminar el resto
+      const [keep, ...toRemove] = group;
+      dbData.users[userIndex].processed_claims = dbData.users[
+        userIndex
+      ].processed_claims.filter((claim) => !toRemove.includes(claim._id));
+    }
+
+    // 3. Guardar los cambios
+    writeJSONFile(dbPath, dbData);
+    return res.json({ message: "Duplicates removed successfully" });
+  } else {
+    return res.status(400).json({
+      error: "Invalid or missing 'duplicates' in request body",
+    });
+  }
+});
+
 
 
 app.listen(3000, () => {

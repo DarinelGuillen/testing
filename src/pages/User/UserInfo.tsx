@@ -9,11 +9,17 @@ function UserInfo() {
   const location = useLocation();
   const [mergedClaims, setMergedClaims] = useState<any[]>([]);
 
+  // Nuevo estado para duplicados
+  const [duplicateGroups, setDuplicateGroups] = useState<any[]>([]);
+  // Estado para mostrar/ocultar el modal
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const userId = params.get("id");
     if (!userId) return;
 
+    // 1. Cargar los datos del usuario
     fetch(`/api/users/${userId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -23,9 +29,7 @@ function UserInfo() {
         const localStr = localStorage.getItem("chatGPTClaims");
         const localClaims = localStr ? JSON.parse(localStr) : [];
         // Filtrar los que correspondan a este usuario, si aplica
-        const userClaims = localClaims.filter(
-          (c: any) => c.userId === data.username
-        );
+        const userClaims = localClaims.filter((c: any) => c.userId === data.username);
 
         // Combinamos: lo de la DB con lo del localStorage
         const combined = [
@@ -45,6 +49,52 @@ function UserInfo() {
       })
       .catch(() => {});
   }, [location.search]);
+
+  // 2. Una vez tenemos al usuario cargado, checamos los duplicados
+  useEffect(() => {
+    if (!user?._id) return;
+
+    fetch(`/api/users/${user._id}/duplicates`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.duplicates && data.duplicates.length > 0) {
+          setDuplicateGroups(data.duplicates);
+          setShowModal(true);
+        } else {
+          alert("No se encontraron duplicados para este usuario.");
+        }
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const handleRemoveDuplicates = async () => {
+    if (!user?._id) return;
+
+    // Extraemos solamente los IDs de cada grupo
+    // la respuesta actual es array de arrays de objetos:
+    // [ [ { _id: "claim_2", ... }, { _id: "claim_3", ...} ], [...] ]
+    // Necesitamos un array de arrays de IDs:
+    // [ ["claim_2", "claim_3"], ... ]
+    const duplicatesArrayOfIds = duplicateGroups.map((group) =>
+      group.map((claim: any) => claim._id)
+    );
+
+    try {
+      const res = await fetch(`/api/users/${user._id}/remove-duplicates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ duplicates: duplicatesArrayOfIds }),
+      });
+      const result = await res.json();
+      console.log(result);
+      // Cerrar modal y refrescar la página o refrescar claims en memoria
+      setShowModal(false);
+      // Opcional: recargar la info del usuario
+      window.location.reload();
+    } catch (error) {
+      console.error("Error removing duplicates:", error);
+    }
+  };
 
   return (
     <>
@@ -108,6 +158,39 @@ function UserInfo() {
           )}
         </>
       )}
+
+      {/* Modal para duplicados */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20%",
+            left: "50%",
+            transform: "translate(-50%, 0)",
+            backgroundColor: "#fff",
+            padding: "20px",
+            border: "2px solid #000",
+            zIndex: 9999,
+          }}
+        >
+          <h2>Claims Duplicadas Encontradas</h2>
+          {duplicateGroups.map((group, idx) => (
+            <div key={idx}>
+              <h4>Grupo #{idx + 1}</h4>
+              <ul>
+                {group.map((claim: any) => (
+                  <li key={claim._id}>
+                    <strong>{claim._id}:</strong> {claim.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <button onClick={handleRemoveDuplicates}>Eliminar Duplicados</button>
+          <button onClick={() => setShowModal(false)}>Cerrar</button>
+        </div>
+      )}
+
       <Link to="/">Home</Link>
     </>
   );
