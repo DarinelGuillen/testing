@@ -1,9 +1,12 @@
 [build]
-  command = "npm run build"          # o yarn build, como lo tengas
-  functions = "netlify/functions"    # carpeta donde vive tu serverless
-  publish = "dist"                   # carpeta de salida de tu build de Vite
+  command   = "npm run build"
+  publish   = "dist"                 # Aquí se publica tu frontend
+  functions = "netlify/functions"    # Aquí están tus funciones serverless
 
+# Redirecciones:
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
+
+# Esto redirige cualquier ruta de /api/... hacia tu función "server" en netlify/functions/server.js

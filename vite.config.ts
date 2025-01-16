@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
 export default defineConfig({
-  base: "/react-vite-shadcn-ui-template/",
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {
@@ -19,7 +19,7 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true,
-        secure: false, 
+        secure: false,
       },
     },
   },
